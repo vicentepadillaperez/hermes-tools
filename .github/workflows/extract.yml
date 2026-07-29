@@ -15,23 +15,22 @@ jobs:
           python-version: '3.11'
       - run: pip install youtube-transcript-api
       - name: Extract transcript
-        run: |
-          python3 << 'PYEOF'
-from youtube_transcript_api import YouTubeTranscriptApi
-import os
-vid = os.environ['VIDEO_ID']
-transcript = YouTubeTranscriptApi.get_transcript(vid, languages=['es','en'])
-with open('transcript.txt', 'w') as f:
-    for t in transcript:
-        m = int(t['start'] // 60)
-        s = int(t['start'] % 60)
-        f.write(f'[{m:02d}:{s:02d}] {t["text"]}\n')
-print(f'Segments: {len(transcript)}, Chars: {sum(len(t["text"]) for t in transcript)}')
-PYEOF
         env:
           VIDEO_ID: ${{ inputs.video_id }}
+        run: |
+          python3 -c "
+          from youtube_transcript_api import YouTubeTranscriptApi
+          import os
+          vid = os.environ['VIDEO_ID']
+          transcript = YouTubeTranscriptApi.get_transcript(vid, languages=['es','en'])
+          with open('transcript.txt', 'w') as f:
+              for t in transcript:
+                  m = int(t['start'] // 60)
+                  s = int(t['start'] % 60)
+                  f.write(f'[{m:02d}:{s:02d}] {t[\"text\"]}\n')
+          print(f'Segments: {len(transcript)}')
+          "
       - uses: actions/upload-artifact@v4
         with:
           name: transcript
           path: transcript.txt
-# trigger refresh Wed Jul 29 22:26:47 UTC 2026
