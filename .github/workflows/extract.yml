@@ -22,7 +22,7 @@ jobs:
           from youtube_transcript_api import YouTubeTranscriptApi
           import os
           vid = os.environ['VIDEO_ID']
-          transcript = YouTubeTranscriptApi.get_transcript(vid, languages=['es','en'])
+          transcript = YouTubeTranscriptApi.fetch(vid, languages=['es','en'])
           with open('transcript.txt', 'w') as f:
               for t in transcript:
                   m = int(t['start'] // 60)
