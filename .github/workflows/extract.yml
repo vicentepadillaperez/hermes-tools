@@ -1,0 +1,36 @@
+name: Extract YouTube Transcript
+on:
+  workflow_dispatch:
+    inputs:
+      video_id:
+        description: 'YouTube Video ID'
+        required: true
+        type: string
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install youtube-transcript-api
+      - name: Extract transcript
+        run: |
+          python3 << 'PYEOF'
+from youtube_transcript_api import YouTubeTranscriptApi
+import os
+vid = os.environ['VIDEO_ID']
+transcript = YouTubeTranscriptApi.get_transcript(vid, languages=['es','en'])
+with open('transcript.txt', 'w') as f:
+    for t in transcript:
+        m = int(t['start'] // 60)
+        s = int(t['start'] % 60)
+        f.write(f'[{m:02d}:{s:02d}] {t["text"]}\n')
+print(f'Segments: {len(transcript)}, Chars: {sum(len(t["text"]) for t in transcript)}')
+PYEOF
+        env:
+          VIDEO_ID: ${{ inputs.video_id }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: transcript
+          path: transcript.txt
